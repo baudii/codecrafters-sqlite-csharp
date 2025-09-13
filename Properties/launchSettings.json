@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "codecrafters-sqlite": {
+      "commandName": "Project",
+      "commandLineArgs": "sample.db .dbinfo"
+    }
+  }
+}

@@ -1,6 +1,7 @@
-using static System.Buffers.Binary.BinaryPrimitives;
-
 // Parse arguments
+using System.Buffers.Binary;
+using System.Text;
+
 var (path, command) = args.Length switch
 {
     0 => throw new InvalidOperationException("Missing <database path> and <command>"),
@@ -20,8 +21,14 @@ if (command == ".dbinfo")
     databaseFile.Seek(16, SeekOrigin.Begin); // Skip the first 16 bytes
     byte[] pageSizeBytes = new byte[2];
     databaseFile.Read(pageSizeBytes, 0, 2);
-    var pageSize = ReadUInt16BigEndian(pageSizeBytes);
+    var pageSize = BinaryPrimitives.ReadUInt16BigEndian(pageSizeBytes);
     Console.WriteLine($"database page size: {pageSize}");
+
+    databaseFile.Seek(103, SeekOrigin.Begin);
+    byte[] cellNumberBytes = new byte[2];
+    databaseFile.Read(cellNumberBytes, 0, 2);
+	var cellNumber = BinaryPrimitives.ReadUInt16BigEndian(cellNumberBytes);
+	Console.WriteLine($"number of tables: {cellNumber}");
 }
 else
 {
