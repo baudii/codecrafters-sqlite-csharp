@@ -42,7 +42,7 @@ else
 	var seekValue = (rootPage - 1) * dbHeader.PageSize;
 	reader.Seek(seekValue);
 	var tablePageHeader = new PageHeader(reader);
-	if (command.Trim().Equals("count(*)", StringComparison.OrdinalIgnoreCase))
+	if (command.Contains("count(*)", StringComparison.OrdinalIgnoreCase))
 	{
 		Console.WriteLine(tablePageHeader.NumberOfCells);
 	}
