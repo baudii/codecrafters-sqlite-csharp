@@ -11,25 +11,42 @@ var (path, command) = args.Length switch
 
 Console.WriteLine($"Path: {path}, Command: {command}");
 var reader = new DbReader(File.OpenRead(path));
+var dbHeader = DbHeader.Read(reader);
+reader.Seek(100);
+var schemaPageHeader = PageHeader.Read(reader);
+
 if (command == ".dbinfo")
 {
-    var dbHeader = DbHeader.Read(reader);
-    reader.Seek(100);
-    var pageHeader = PageHeader.Read(reader);
 	Console.WriteLine($"database page size: {dbHeader.PageSize}");
-	Console.WriteLine($"number of tables: {pageHeader.NumberOfCells}");
+	Console.WriteLine($"number of tables: {schemaPageHeader.NumberOfCells}");
 }
 else if (command == ".tables")
 {
-    reader.Seek(100);
-    var pageHeader = PageHeader.Read(reader);
-    for (int i = 0; i < pageHeader.Pointers.Length; i++)
+    for (int i = 0; i < schemaPageHeader.Pointers.Length; i++)
     {
-        var schema = SqlSchemaRecord.Read(reader, pageHeader.Pointers[i]);
+        var schema = SqlSchemaRecord.Read(reader, schemaPageHeader.Pointers[i]);
         Console.WriteLine(schema.RecordData["tbl_name"]);
 	}
 }
 else
 {
-    throw new InvalidOperationException($"Invalid command: {command}");
+    var spl = command.Split(' ');
+    var table = spl[^1];
+
+    SqlSchemaRecord[] schemas = new SqlSchemaRecord[schemaPageHeader.NumberOfCells];
+	for (int i = 0; i < schemaPageHeader.Pointers.Length; i++)
+	{
+        schemas[i] = SqlSchemaRecord.Read(reader, schemaPageHeader.Pointers[i]);
+	}
+
+    var desired = schemas.First(x => x.RecordData["tbl_name"].ToString() == table);
+    var rootPage = (byte)desired.RecordData["rootpage"];
+
+	var pageSize = dbHeader.PageSize;
+	var seekValue = (rootPage - 1) * pageSize;
+
+	reader.Seek(seekValue);
+	var p = PageHeader.Read(reader);
+
+	Console.WriteLine(p.NumberOfCells);
 }

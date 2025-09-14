@@ -2,7 +2,7 @@
   "profiles": {
     "codecrafters-sqlite": {
       "commandName": "Project",
-      "commandLineArgs": "sample.db .tables"
+      "commandLineArgs": "sample.db \"SELECT COUNT(*) FROM apples\""
     }
   }
 }

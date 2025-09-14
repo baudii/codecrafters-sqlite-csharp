@@ -6,6 +6,7 @@ internal class DbHeader
 	public static DbHeader Read(DbReader reader)
 	{
 		var ret = new DbHeader();
+
 		reader.Seek(0);
 		var str = reader.ReadString(16);
 		if (str != "SQLite format 3\0")

@@ -12,6 +12,7 @@ internal class PageHeader
 	public static PageHeader Read(DbReader reader)
 	{
 		var header = new PageHeader();
+
 		header.PageType = reader.ReadInt(1)[0];
 		header.FirstFreeBlock = reader.ReadTwoBytesAsUInt16();
 		header.NumberOfCells = reader.ReadTwoBytesAsUInt16();
