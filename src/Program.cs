@@ -29,6 +29,7 @@ else if (command == ".tables")
 }
 else
 {
+    var sqlCommand = new SqlCommand(command);
     var table = command.Split(' ')[^1];
 
     SqlSchemaRecord[] schemas = new SqlSchemaRecord[schemaPageHeader.NumberOfCells];
@@ -49,6 +50,6 @@ else
     for (int i = 0; i < tablePageHeader.NumberOfCells; i++)
     {
         var record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
-        Console.WriteLine(record.RecordData["name"]);
+        Console.WriteLine(record.RecordData[sqlCommand.Columns[0]]);
     }
 }
