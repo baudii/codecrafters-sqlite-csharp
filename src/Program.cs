@@ -42,16 +42,17 @@ else if (command == ".tables")
         var rowId = ReadVarint(dbFile, out _);
         var serialTypes = ReadRecordHeader(dbFile);
         string prv = string.Empty;
-        bool wr = false;
+        int j = 0;
         foreach (var st in serialTypes)
         {
-            var val = HandleSerialTypes(dbFile, st, ref prv);
-            if (val != -1)
-            {
+			if (j == 3)
+			{
 				Console.WriteLine(prv);
-            }
-        }
-    }
+			}
+			var val = HandleSerialTypes(dbFile, st, ref prv);
+            j++;
+		}
+	}
 }
 else
 {
@@ -76,7 +77,6 @@ static long HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
 			{
 				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2));
 			}
-
             break;
     }
     return -1;
