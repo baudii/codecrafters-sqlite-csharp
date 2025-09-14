@@ -26,6 +26,10 @@ internal class DbReader(FileStream dbFile)
 		return BinaryPrimitives.ReadUInt32BigEndian(bytes);
 	}
 
+	public byte ReadByte()
+	{
+		return (byte)dbFile.ReadByte();
+	}
 
 	public byte[] ReadInt(int byteCnt)
 	{
@@ -37,17 +41,11 @@ internal class DbReader(FileStream dbFile)
 	public long ReadVarint(out int readbytes)
 	{
 		long res = 0;
-		byte[] buffer = new byte[1];
 		byte leadingOne = 1 << 7;
 		for (int i = 0; i < 9; ++i)
 		{
-			var read = dbFile.Read(buffer, 0, 1);
-			if (read != 1)
-			{
-				throw new InvalidOperationException($"Read {read} bytes. Should be 1.");
-			}
-
-			byte r = buffer[0];
+			res <<= 7;
+			byte r = ReadByte();
 			if (i == 8 || (r & leadingOne) == 0)
 			{
 				readbytes = i + 1;
@@ -61,10 +59,25 @@ internal class DbReader(FileStream dbFile)
 		throw new InvalidOperationException("Outside of the loop.");
 	}
 
+	public int ReadVarint2(out int bytesRead)
+	{
+		int result = 0;
+		bytesRead = 0;
+		byte b;
+		do
+		{
+			b = (byte)dbFile.ReadByte();
+			result = (result << 7) | (b & 0x7F);
+			bytesRead++;
+		} while ((b & 0x80) != 0);
+
+		return result;
+	}
+
 	public string ReadString(int length)
 	{
-		var buffer = new byte[length].AsSpan();
-		int read = dbFile.Read(buffer);
+		var buffer = new byte[length];
+		int read = dbFile.Read(buffer, 0, length);
 		if (read != length)
 		{
 			throw new ArgumentException("Failed to read the whole string");
@@ -73,15 +86,15 @@ internal class DbReader(FileStream dbFile)
 		return Encoding.UTF8.GetString(buffer);
 	}
 
-	public string ReadBlob(int length)
+	public byte[] ReadBlob(int length)
 	{
-		var buffer = new byte[length].AsSpan();
-		int read = dbFile.Read(buffer);
+		var buffer = new byte[length];
+		int read = dbFile.Read(buffer, 0, length);
 		if (read != length)
 		{
-			throw new ArgumentException("Failed to read the whole string");
+			throw new ArgumentException("Failed to read the whole BLOB");
 		}
 
-		return Encoding.UTF8.GetString(buffer);
+		return buffer;
 	}
 }

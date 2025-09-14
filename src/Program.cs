@@ -12,7 +12,7 @@ var (path, command) = args.Length switch
 var reader = new DbReader(File.OpenRead(path));
 var dbHeader = DbHeader.Read(reader);
 reader.Seek(100);
-var schemaPageHeader = PageHeader.Read(reader);
+var schemaPageHeader = new PageHeader(reader);
 
 if (command == ".dbinfo")
 {
@@ -23,29 +23,32 @@ else if (command == ".tables")
 {
     for (int i = 0; i < schemaPageHeader.Pointers.Length; i++)
     {
-        var schema = SqlSchemaRecord.Read(reader, schemaPageHeader.Pointers[i]);
+        var schema = new SqlSchemaRecord(reader, schemaPageHeader.Pointers[i]);
         Console.WriteLine(schema.RecordData["tbl_name"]);
 	}
 }
 else
 {
-    var spl = command.Split(' ');
-    var table = spl[^1];
+    var table = command.Split(' ')[^1];
 
     SqlSchemaRecord[] schemas = new SqlSchemaRecord[schemaPageHeader.NumberOfCells];
 	for (int i = 0; i < schemaPageHeader.Pointers.Length; i++)
 	{
-        schemas[i] = SqlSchemaRecord.Read(reader, schemaPageHeader.Pointers[i]);
+        schemas[i] = new SqlSchemaRecord(reader, schemaPageHeader.Pointers[i]);
 	}
 
     var desired = schemas.First(x => x.RecordData["tbl_name"].ToString() == table);
     var rootPage = (byte)desired.RecordData["rootpage"];
 
-	var pageSize = dbHeader.PageSize;
-	var seekValue = (rootPage - 1) * pageSize;
+	var seekValue = (rootPage - 1) * dbHeader.PageSize;
 
 	reader.Seek(seekValue);
-	var p = PageHeader.Read(reader);
-
-	Console.WriteLine(p.NumberOfCells);
+	var tablePageHeader = new PageHeader(reader);
+    var columns = desired.ExtractColumnNamesFromSql();
+    Record[] headers = new Record[tablePageHeader.NumberOfCells];
+    for (int i = 0; i < tablePageHeader.NumberOfCells; i++)
+    {
+        var record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
+        Console.WriteLine(record.RecordData["name"]);
+    }
 }
