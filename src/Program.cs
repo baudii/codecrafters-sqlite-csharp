@@ -9,7 +9,6 @@ var (path, command) = args.Length switch
     _ => (args[0], args[1])
 };
 
-Console.WriteLine($"Path: {path}, Command: {command}");
 var reader = new DbReader(File.OpenRead(path));
 var dbHeader = DbHeader.Read(reader);
 reader.Seek(100);
