@@ -45,15 +45,10 @@ else if (command == ".tables")
         bool wr = false;
         foreach (var st in serialTypes)
         {
-            if (prv == "table")
+            var val = HandleSerialTypes(dbFile, st, ref prv);
+            if (val != -1)
             {
-                wr = true;
-            }
-            HandleSerialTypes(dbFile, st, ref prv);
-            if (wr)
-            {
-                Console.Write($"{prv} ");
-                wr = false;
+				Console.WriteLine(prv);
             }
         }
     }
@@ -63,7 +58,7 @@ else
     throw new InvalidOperationException($"Invalid command: {command}");
 }
 
-static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv)
+static long HandleSerialTypes(FileStream dbFile, long serialType, ref string prv)
 {
     switch (serialType)
     {
@@ -71,13 +66,8 @@ static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
             break;
         case <= 8:
             var t = ReadVarint(dbFile, out int read);
-            break;
+            return t;
         case >= 12:
-			if (serialType - 13 > int.MaxValue)
-			{
-				Console.WriteLine("TOOO BIG");
-			}
-
 			if (serialType % 2 == 1)
             {
 				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2));
@@ -86,8 +76,10 @@ static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
 			{
 				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2));
 			}
+
             break;
     }
+    return -1;
 }
 
 static string ReadRecordString(FileStream dbFile, int length)
@@ -116,18 +108,6 @@ static List<long> ReadRecordHeader(FileStream databaseFile)
     }
 
     return res;
-}
-
-static long ReadIntAndConvert(FileStream dbFile, int byteCnt)
-{
-    var bytes = ReadInt(dbFile, byteCnt / 4);
-    return bytes.Length switch
-    {
-        2 => BinaryPrimitives.ReadInt16BigEndian(bytes),
-        4 => BinaryPrimitives.ReadInt32BigEndian(bytes),
-        8 => BinaryPrimitives.ReadInt64BigEndian(bytes),
-        _ => throw new ArgumentException("Failed to read")
-    };
 }
 
 static byte[] ReadInt(FileStream dbFile, int byteCnt)
