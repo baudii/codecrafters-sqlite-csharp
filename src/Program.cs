@@ -80,7 +80,7 @@ static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
             }
             else
 			{
-				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2));
+				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2)).TrimEnd();
 			}
             break;
     }
