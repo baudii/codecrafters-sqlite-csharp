@@ -41,18 +41,30 @@ else if (command == ".tables")
         var recordSize = ReadVarint(dbFile, out _);
         var rowId = ReadVarint(dbFile, out _);
         var serialTypes = ReadRecordHeader(dbFile);
+        string prv = string.Empty;
+        bool wr = false;
         foreach (var st in serialTypes)
         {
-            HandleSerialTypes(dbFile, st);
-		}
-	}
+            if (prv == "table")
+            {
+                wr = true;
+                prv = string.Empty;
+            }
+            HandleSerialTypes(dbFile, st, ref prv);
+            if (wr)
+            {
+                Console.WriteLine(prv);
+                wr = false;
+            }
+        }
+    }
 }
 else
 {
     throw new InvalidOperationException($"Invalid command: {command}");
 }
 
-static void HandleSerialTypes(FileStream dbFile, long serialType)
+static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv)
 {
     switch (serialType)
     {
@@ -64,17 +76,11 @@ static void HandleSerialTypes(FileStream dbFile, long serialType)
         case >= 12:
             if (serialType % 2 == 1)
             {
-                var s = ReadRecordString(dbFile, (int)((serialType - 13) / 2));
+				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2));
             }
             else
 			{
-				var s = ReadRecordString(dbFile, (int)((serialType - 12) / 2));
-                var command = "CREATE TABLE ";
-
-				if (s.StartsWith(command))
-                {
-                    Console.WriteLine(new string(s[command.Length..].TakeWhile(s => !char.IsWhiteSpace(s)).ToArray()));
-                }
+				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2));
 			}
             break;
     }
