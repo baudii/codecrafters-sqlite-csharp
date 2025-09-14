@@ -28,8 +28,10 @@ if (command == ".dbinfo")
 }
 else if (command == ".tables")
 {
-    dbFile.Seek(108, SeekOrigin.Begin);
-    ushort[] pointers = new ushort[3];
+	dbFile.Seek(103, SeekOrigin.Begin);
+	var cellNumber = ReadTwoBytesAsInt16(dbFile);
+	dbFile.Seek(108, SeekOrigin.Begin);
+    ushort[] pointers = new ushort[cellNumber];
     for (int i = 0; i < pointers.Length; i++)
     {
         pointers[i] = ReadTwoBytesAsInt16(dbFile);
