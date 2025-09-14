@@ -1,4 +1,7 @@
-﻿namespace codecrafters_sqlite.src.Models;
+﻿using System.Buffers.Binary;
+using System.Text;
+
+namespace codecrafters_sqlite.src.Models;
 internal class SqlSchemaRecord
 {
 	public long RecordSize { get; set; }
@@ -42,12 +45,19 @@ internal class SqlSchemaRecord
 
 	public static object HandleSerialTypes(DbReader reader, long serialType)
 	{
+		byte[] bytes;
 		switch (serialType)
 		{
 			case 0:
 				break;
-			case 1:
-				return reader.ReadInt(1)[0];
+			case 1: return reader.ReadInt(1)[0];
+			case 2: return reader.ReadTwoBytesAsUInt16();
+			case <= 4:
+				bytes = reader.ReadInt((int)serialType);
+				return BinaryPrimitives.ReadInt32BigEndian(bytes);
+			case <= 6:
+				bytes = reader.ReadInt(6 + ((int)serialType - 5) * 2);
+				return BinaryPrimitives.ReadInt32BigEndian(bytes);
 			case >= 12:
 				if (serialType % 2 == 1)
 					return reader.ReadString((int)((serialType - 13) / 2));
