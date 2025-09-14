@@ -73,7 +73,12 @@ static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
             var t = ReadVarint(dbFile, out int read);
             break;
         case >= 12:
-            if (serialType % 2 == 1)
+			if (serialType - 13 > int.MaxValue)
+			{
+				Console.WriteLine("TOOO BIG");
+			}
+
+			if (serialType % 2 == 1)
             {
 				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2));
             }
