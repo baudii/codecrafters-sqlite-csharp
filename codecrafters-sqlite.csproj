@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="northwind.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="sample.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
