@@ -48,12 +48,11 @@ else if (command == ".tables")
             if (prv == "table")
             {
                 wr = true;
-                prv = string.Empty;
             }
             HandleSerialTypes(dbFile, st, ref prv);
             if (wr)
             {
-                Console.WriteLine(prv);
+                Console.Write($"{prv} ");
                 wr = false;
             }
         }
@@ -76,11 +75,11 @@ static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
         case >= 12:
             if (serialType % 2 == 1)
             {
-				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2)).TrimEnd();
+				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2));
             }
             else
 			{
-				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2)).TrimEnd();
+				prv = ReadRecordString(dbFile, (int)((serialType - 12) / 2));
 			}
             break;
     }
