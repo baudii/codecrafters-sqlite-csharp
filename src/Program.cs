@@ -1,6 +1,7 @@
 // Parse arguments
 using codecrafters_sqlite.src;
 using codecrafters_sqlite.src.Models;
+using System.Text;
 
 var (path, command) = args.Length switch
 {
@@ -41,17 +42,25 @@ else
 	var seekValue = (rootPage - 1) * dbHeader.PageSize;
 	reader.Seek(seekValue);
 	var tablePageHeader = new PageHeader(reader);
-    if (command.Contains("count(*)", StringComparison.OrdinalIgnoreCase))
-    {
+	if (command.Trim().Equals("count(*)", StringComparison.OrdinalIgnoreCase))
+	{
 		Console.WriteLine(tablePageHeader.NumberOfCells);
-    }
-    else
-    {
+	}
+	else
+	{
 		var columns = desired.ExtractColumnNamesFromSql();
 		for (int i = 0; i < tablePageHeader.NumberOfCells; i++)
 		{
 			var record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
-			Console.WriteLine(record.RecordData[sqlCommand.Columns[0]]);
+			StringBuilder sb = new();
+			sb.Append(record.RecordData[sqlCommand.Columns[0]]);
+			for (int j = 1; j < sqlCommand.Columns.Length; j++)
+			{
+				record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
+				sb.Append('|').Append(record.RecordData[sqlCommand.Columns[j]]);
+			}
+			Console.WriteLine(sb.ToString());
 		}
+		
 	}
 }

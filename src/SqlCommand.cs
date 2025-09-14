@@ -9,7 +9,7 @@ internal class SqlCommand
 		var res = new List<string>();
 		do
 		{
-			res.Add(spl[i++]);
+			res.Add(spl[i++].TrimEnd(','));
 		}
 		while (!spl[i].Equals("FROM", StringComparison.OrdinalIgnoreCase));
 		Columns = res.ToArray();
