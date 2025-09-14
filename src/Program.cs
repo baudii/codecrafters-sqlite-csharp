@@ -76,7 +76,7 @@ static void HandleSerialTypes(FileStream dbFile, long serialType, ref string prv
         case >= 12:
             if (serialType % 2 == 1)
             {
-				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2));
+				prv = ReadRecordString(dbFile, (int)((serialType - 13) / 2)).TrimEnd();
             }
             else
 			{
