@@ -73,7 +73,7 @@ internal class FilterContainer
 	public string ColName { get; set; }
 	public string ComparisonType { get; set; }
 	public string Comparable { get; set; }
-	public Func<object, bool>? FilterHandler { get; set; }
+	public Func<object, bool> FilterHandler { get; set; }
 }
 
 enum DMLCommand

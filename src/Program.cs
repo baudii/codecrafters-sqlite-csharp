@@ -52,7 +52,7 @@ else
 		for (int i = 0; i < tablePageHeader.NumberOfCells; i++)
 		{
 			var record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
-			if (sqlCommand.Filter?.FilterHandler?.Invoke(record.RecordData[sqlCommand.Filter.ColName]) != true)
+			if (sqlCommand.Filter != null && !sqlCommand.Filter.FilterHandler(record.RecordData[sqlCommand.Filter.ColName]))
 			{
 				continue;
 			}
