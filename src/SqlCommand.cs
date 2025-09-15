@@ -3,35 +3,85 @@ internal class SqlCommand
 {
 	public SqlCommand(string sql)
 	{
-		var spl = sql.Split(' ');
-		Command = GetCommandType(spl[0]);
+		var splitSql = sql.Split(' ');
+		Command = ParseDML(splitSql[0]);
 		int i = 1;
 		var res = new List<string>();
 		do
 		{
-			res.Add(spl[i++].TrimEnd(','));
+			res.Add(splitSql[i++].TrimEnd(','));
 		}
-		while (!spl[i].Equals("FROM", StringComparison.OrdinalIgnoreCase));
+		while (!splitSql[i].Equals("FROM", StringComparison.OrdinalIgnoreCase));
 		Columns = res.ToArray();
-		TableName = spl[i + 1];
+		TableName = splitSql[++i];
+		i++;
+		TryParseClause(splitSql, ref i);
 	}
 
-	public CommandType Command { get; set; }
+	public FilterContainer Filter { get; set; }
+	public DMLCommand Command { get; set; }
 	public string[] Columns { get; set; }
 	public string TableName { get; set; }
 
-	private CommandType GetCommandType(string commandString)
+	private DMLCommand ParseDML(string commandString)
 	{
 		if (commandString.Equals("SELECT", StringComparison.OrdinalIgnoreCase));
 		{
-			return CommandType.SELECT;
+			return DMLCommand.SELECT;
+		}
+
+		throw new NotImplementedException();
+	}
+
+	private void TryParseClause(string[] splitSql, ref int i)
+	{
+		if (i >= splitSql.Length)
+		{
+			return;
+		}
+
+		if (splitSql[i++].Equals("WHERE", StringComparison.OrdinalIgnoreCase))
+		{
+			var filter = new FilterContainer()
+			{
+				Clause = Clauses.WHERE,
+				ColName = splitSql[i++],
+				ComparisonType = splitSql[i++],
+				Comparable = splitSql[i++].Trim('\'')
+			};
+
+			filter.FilterHandler = comp =>
+			{
+				return filter.ComparisonType switch
+				{
+					"=" => comp.ToString() == filter.Comparable,
+					_ => throw new NotSupportedException(filter.ComparisonType)
+				};
+			};
+
+			Filter = filter;
+			return;
 		}
 
 		throw new NotImplementedException();
 	}
 }
 
-enum CommandType
+internal class FilterContainer
+{
+	public Clauses Clause { get; set; }
+	public string ColName { get; set; }
+	public string ComparisonType { get; set; }
+	public string Comparable { get; set; }
+	public Func<object, bool>? FilterHandler { get; set; }
+}
+
+enum DMLCommand
 {
 	SELECT
+}
+
+enum Clauses
+{
+	WHERE
 }

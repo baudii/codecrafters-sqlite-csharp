@@ -52,15 +52,13 @@ else
 		for (int i = 0; i < tablePageHeader.NumberOfCells; i++)
 		{
 			var record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
-			StringBuilder sb = new();
-			sb.Append(record.RecordData[sqlCommand.Columns[0]]);
-			for (int j = 1; j < sqlCommand.Columns.Length; j++)
+			if (!sqlCommand.Filter.FilterHandler.Invoke(record.RecordData[sqlCommand.Filter.ColName]))
 			{
-				record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
-				sb.Append('|').Append(record.RecordData[sqlCommand.Columns[j]]);
+				continue;
 			}
-			Console.WriteLine(sb.ToString());
+
+			var records = sqlCommand.Columns.Select(x => record.RecordData.First(p => p.Key == x).Value);
+			Console.WriteLine(string.Join("|", records));
 		}
-		
 	}
 }
