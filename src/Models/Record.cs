@@ -1,10 +1,9 @@
 ﻿using System.Buffers.Binary;
-using System.Reflection.Metadata.Ecma335;
 
 namespace codecrafters_sqlite.src.Models;
 internal class Record
 {
-	public Record(DbReader reader, ushort pointer, params string[] columns)
+	public Record(DbReader reader, uint pointer, params string[] columns)
 	{
 		reader.Seek(pointer);
 		RecordSize = reader.ReadVarint(out _);
@@ -35,7 +34,7 @@ internal class Record
 	public long HeaderSize { get; set; }
 	public List<long> SerialTypes { get; set; } = [];
 	public Dictionary<string, object> RecordData { get; set; } = [];
-
+	
 	public static object HandleSerialTypes(DbReader reader, long serialType) =>
 		serialType switch
 		{
@@ -44,6 +43,8 @@ internal class Record
 			2 => reader.ReadTwoBytesAsUInt16(),
 			3 => BinaryPrimitives.ReadInt32BigEndian(reader.ReadInt((int)serialType)),
 			<= 6 => BinaryPrimitives.ReadInt32BigEndian(reader.ReadInt(6 + ((int)serialType - 5) * 2)),
+			7 => throw new NotImplementedException(),
+			<= 9 => 0,
 			_ when serialType >= 12 && (serialType % 2 == 0) => reader.ReadBlob(((int)serialType - 12) / 2),
 			_ when serialType >= 13 && (serialType % 2 == 1) => reader.ReadString((int)((serialType - 13) / 2)),
 			_ => throw new NotImplementedException()

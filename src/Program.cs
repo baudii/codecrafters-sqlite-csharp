@@ -13,7 +13,7 @@ var (path, command) = args.Length switch
 var reader = new DbReader(File.OpenRead(path));
 var dbHeader = DbHeader.Read(reader);
 reader.Seek(100);
-var schemaPageHeader = new PageHeader(reader);
+var schemaPageHeader = new Page(reader);
 
 if (command == ".dbinfo")
 {
@@ -36,29 +36,7 @@ else
 	{
 		schemas[i] = new SqlSchemaRecord(reader, schemaPageHeader.Pointers[i]);
 	}
-
-	var desired = schemas.First(x => x.RecordData["tbl_name"].ToString() == sqlCommand.TableName);
-	var rootPage = (byte)desired.RecordData["rootpage"];
-	var seekValue = (rootPage - 1) * dbHeader.PageSize;
-	reader.Seek(seekValue);
-	var tablePageHeader = new PageHeader(reader);
-	if (command.Contains("count(*)", StringComparison.OrdinalIgnoreCase))
-	{
-		Console.WriteLine(tablePageHeader.NumberOfCells);
-	}
-	else
-	{
-		var columns = desired.ExtractColumnNamesFromSql();
-		for (int i = 0; i < tablePageHeader.NumberOfCells; i++)
-		{
-			var record = new Record(reader, (ushort)(seekValue + tablePageHeader.Pointers[i]), columns);
-			if (sqlCommand.Filter != null && !sqlCommand.Filter.FilterHandler(record.RecordData[sqlCommand.Filter.ColName]))
-			{
-				continue;
-			}
-
-			var records = sqlCommand.Columns.Select(x => record.RecordData.First(p => p.Key == x).Value);
-			Console.WriteLine(string.Join("|", records));
-		}
-	}
+	var schema = schemas.First(x => x.RecordData["tbl_name"].ToString() == sqlCommand.TableName);
+	var traverser = new PageTraverser(reader, dbHeader.PageSize, schema.ExtractColumnNamesFromSql());
+	traverser.Traverse(sqlCommand, (byte)schema.RecordData["rootpage"]);
 }

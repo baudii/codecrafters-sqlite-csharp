@@ -18,12 +18,12 @@ internal class SqlCommand
 		TryParseClause(splitSql, ref i);
 	}
 
-	public FilterContainer? Filter { get; set; }
+	public WhereFilterData? Filter { get; set; }
 	public DMLCommand Command { get; set; }
 	public string[] Columns { get; set; }
 	public string TableName { get; set; }
 
-	private DMLCommand ParseDML(string commandString)
+	private static DMLCommand ParseDML(string commandString)
 	{
 		if (commandString.Equals("SELECT", StringComparison.OrdinalIgnoreCase));
 		{
@@ -42,24 +42,20 @@ internal class SqlCommand
 
 		if (splitSql[i++].Equals("WHERE", StringComparison.OrdinalIgnoreCase))
 		{
-			var filter = new FilterContainer()
+			Filter = new WhereFilterData()
 			{
-				Clause = Clauses.WHERE,
 				ColName = splitSql[i++],
-				ComparisonType = splitSql[i++],
-				Comparable = splitSql[i++].Trim('\'')
+				ComparisonType = splitSql[i++]
 			};
-
-			filter.FilterHandler = comp =>
+			int start = i;
+			string val;
+			do
 			{
-				return filter.ComparisonType switch
-				{
-					"=" => comp.ToString() == filter.Comparable,
-					_ => throw new NotSupportedException(filter.ComparisonType)
-				};
-			};
+				val = splitSql[i++];
+			}
+			while (!val.EndsWith('\''));
+			Filter.TestValue = string.Join(" ", splitSql[start..i]).Trim('\'');
 
-			Filter = filter;
 			return;
 		}
 
@@ -67,13 +63,20 @@ internal class SqlCommand
 	}
 }
 
-internal class FilterContainer
+internal class WhereFilterData
 {
-	public Clauses Clause { get; set; }
-	public string ColName { get; set; }
-	public string ComparisonType { get; set; }
-	public string Comparable { get; set; }
-	public Func<object, bool> FilterHandler { get; set; }
+	public required string ColName { get; set; }
+	public required string ComparisonType { get; set; }
+	public string TestValue { get; set; }
+	
+	public bool CanFilterBy(object comp)
+	{
+		return ComparisonType switch
+		{
+			"=" => comp.ToString() == TestValue,
+			_ => throw new NotSupportedException(ComparisonType)
+		};
+	}
 }
 
 enum DMLCommand
