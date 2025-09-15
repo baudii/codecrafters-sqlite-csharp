@@ -18,7 +18,7 @@ internal class SqlCommand
 		TryParseClause(splitSql, ref i);
 	}
 
-	public FilterContainer Filter { get; set; }
+	public FilterContainer? Filter { get; set; }
 	public DMLCommand Command { get; set; }
 	public string[] Columns { get; set; }
 	public string TableName { get; set; }
