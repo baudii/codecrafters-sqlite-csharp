@@ -3,7 +3,7 @@
 namespace codecrafters_sqlite.src;
 internal class PageTraverser(DbReader reader, ushort pageSize, string[] columns)
 {
-	public void ReadTable(SqlCommand sqlCommand, Page page, uint offset, long rowId = -1)
+	public void ReadTable(SqlCommand sqlCommand, Page page, uint offset)
 	{
 		for (int i = 0; i < page.NumberOfCells; i++)
 		{
@@ -11,11 +11,6 @@ internal class PageTraverser(DbReader reader, ushort pageSize, string[] columns)
 			if (sqlCommand.Filter != null && !sqlCommand.Filter.CanFilterBy(record.RecordData[sqlCommand.Filter.ColName]))
 			{
 				continue;
-			}
-
-			if (rowId != -1 && record.RecordData.TryGetValue("id", out var id) && id.Equals(-1))
-			{
-				record.RecordData["id"] = rowId;
 			}
 
 			var records = sqlCommand.Columns.Select(x => record.RecordData.First(p => p.Key == x).Value);
@@ -29,8 +24,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize, string[] columns)
 		{
 			reader.Seek(offset + page.Pointers[i]);
 			var leftPointer = reader.ReadFourBytesAsUInt32();
-			var rowId = reader.ReadVarint(out _);
-			Traverse(sqlCommand, leftPointer, rowId);
+			Traverse(sqlCommand, leftPointer);
 		}
 	}
 
@@ -46,7 +40,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize, string[] columns)
 		}
 		else if (page.PageType == 13)
 		{
-			ReadTable(sqlCommand, page, offset, rowId);
+			ReadTable(sqlCommand, page, offset);
 		}
 		else if (page.PageType == 5)
 		{

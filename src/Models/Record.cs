@@ -25,7 +25,14 @@ internal class Record
 		for (int i = 0; i < SerialTypes.Count; i++)
 		{
 			var data = HandleSerialTypes(reader, SerialTypes[i]);
-			RecordData[columns[i]] = data;
+			if (data.Equals(-1) && columns[i] == "id")
+			{
+				RecordData[columns[i]] = RowId;
+			}
+			else
+			{
+				RecordData[columns[i]] = data;
+			}
 		}
 	}
 
