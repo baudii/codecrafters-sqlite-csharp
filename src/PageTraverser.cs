@@ -84,7 +84,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 			var testVal = sqlCommand.Filter!.TestValue;
 			if (sqlCommand.Filter!.CanFilterBy(val))
 			{
-				rowIds.Add((uint)record.RecordData["rowid"]);
+				rowIds.Add(Convert.ToUInt32(record.RecordData["rowid"]));
 			}
 		}
 	}
