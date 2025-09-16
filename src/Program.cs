@@ -1,7 +1,7 @@
 // Parse arguments
 using codecrafters_sqlite.src;
 using codecrafters_sqlite.src.Models;
-using System.Text;
+using codecrafters_sqlite.src.Records;
 
 var (path, command) = args.Length switch
 {

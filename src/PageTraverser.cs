@@ -1,4 +1,5 @@
 ﻿using codecrafters_sqlite.src.Models;
+using codecrafters_sqlite.src.Records;
 using System;
 using System.Text;
 
