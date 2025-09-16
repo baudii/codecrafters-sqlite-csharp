@@ -46,6 +46,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 
 			var records = sqlCommand.Columns.Select(x => record.RecordData.First(p => p.Key == x).Value);
 			Console.WriteLine(string.Join("|", records));
+			rowIds.Remove(Convert.ToUInt32(record.RowId));
 		}
 	}
 
