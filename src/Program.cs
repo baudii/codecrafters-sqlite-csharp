@@ -31,12 +31,6 @@ else if (command == ".tables")
 else
 {
 	var sqlCommand = new SqlCommand(command);
-	SqlSchemaRecord[] schemas = new SqlSchemaRecord[schemaPageHeader.NumberOfCells];
-	for (int i = 0; i < schemaPageHeader.Pointers.Length; i++)
-	{
-		schemas[i] = new SqlSchemaRecord(reader, schemaPageHeader.Pointers[i]);
-	}
-	var schema = schemas.First(x => x.RecordData["tbl_name"].ToString() == sqlCommand.TableName);
-	var traverser = new PageTraverser(reader, dbHeader.PageSize, schema.ExtractColumnNamesFromSql());
-	traverser.Traverse(sqlCommand, (byte)schema.RecordData["rootpage"]);
+	var traverser = new PageTraverser(reader, dbHeader.PageSize);
+    traverser.Start(sqlCommand, schemaPageHeader);
 }

@@ -3,11 +3,8 @@
 namespace codecrafters_sqlite.src.Models;
 internal class Record
 {
-	public Record(DbReader reader, uint pointer, params string[] columns)
+	public void ReadPayload(DbReader reader, params string[] columns)
 	{
-		reader.Seek(pointer);
-		RecordSize = reader.ReadVarint(out _);
-		RowId = reader.ReadVarint(out _);
 		long recordHeaderSize = reader.ReadVarint(out var readBytes);
 		HeaderSize = recordHeaderSize;
 		recordHeaderSize -= readBytes;
@@ -19,13 +16,17 @@ internal class Record
 			SerialTypes.Add(val);
 		}
 
-		if (SerialTypes.Count != columns.Length)
+		if (columns.Length > 0 && SerialTypes.Count != columns.Length)
 			throw new InvalidOperationException("Record format mismatch");
 
 		for (int i = 0; i < SerialTypes.Count; i++)
 		{
 			var data = HandleSerialTypes(reader, SerialTypes[i]);
-			if (data.Equals(-1) && columns[i] == "id")
+			if (columns.Length == 0)
+			{
+				RecordData[i.ToString()] = data;
+			}
+			else if (data.Equals(-1) && columns[i] == "id")
 			{
 				RecordData[columns[i]] = RowId;
 			}
@@ -48,7 +49,7 @@ internal class Record
 			0 => -1,
 			1 => reader.ReadByte(),
 			2 => reader.ReadTwoBytesAsUInt16(),
-			3 => BinaryPrimitives.ReadInt32BigEndian(reader.ReadInt((int)serialType)),
+			3 => reader.Read3Bytes(),
 			<= 6 => BinaryPrimitives.ReadInt32BigEndian(reader.ReadInt(6 + ((int)serialType - 5) * 2)),
 			7 => throw new NotImplementedException(),
 			<= 9 => 0,

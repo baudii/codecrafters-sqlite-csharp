@@ -38,6 +38,13 @@ internal class DbReader(FileStream dbFile)
 		return bytes;
 	}
 
+	public uint Read3Bytes()
+	{
+		var bytes = new byte[4];
+		_ = dbFile.Read(bytes.AsSpan(1, 3));
+		return BinaryPrimitives.ReadUInt32BigEndian(bytes);
+	}
+
 	public long ReadVarint(out int readbytes)
 	{
 		long res = 0;

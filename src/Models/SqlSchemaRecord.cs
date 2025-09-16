@@ -1,5 +1,5 @@
 ﻿namespace codecrafters_sqlite.src.Models;
-internal class SqlSchemaRecord(DbReader reader, ushort pointer) : Record(reader, pointer, "type", "name", "tbl_name", "rootpage", "sql")
+internal class SqlSchemaRecord(DbReader reader, ushort pointer) : TableRecord(reader, pointer, "type", "name", "tbl_name", "rootpage", "sql")
 {
 	public string[] ExtractColumnNamesFromSql()
 	{
@@ -8,7 +8,18 @@ internal class SqlSchemaRecord(DbReader reader, ushort pointer) : Record(reader,
 		var end = sql.IndexOf(')');
 		return sql[start..end]
 			.Split(',')
-			.Select(x => x.Trim().Split(' ')[0])
+			.Select(x =>
+			{
+				var trimmed = x.Trim();
+				if (trimmed.StartsWith('\"'))
+				{
+					return trimmed[1..trimmed.LastIndexOf('\"')];
+				}
+				else
+				{
+					return trimmed.Split(' ')[0];
+				}
+			})
 			.ToArray();
 	}
 }
