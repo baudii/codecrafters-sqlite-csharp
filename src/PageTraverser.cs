@@ -6,7 +6,8 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 {
 	string[] columns;
 	Dictionary<string, SqlSchemaRecord> indexes = [];
-	List<uint> rowIds = [];
+	Dictionary<uint, bool> rowIds = [];
+	int setRows = -1;
 	bool finished = false;
 	public void Start(SqlCommand sqlCommand, Page schemaPageHeader)
 	{
@@ -27,6 +28,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 		columns = schema.ExtractColumnNamesFromSql();
 		if (sqlCommand.Filter != null && indexes.TryGetValue(sqlCommand.Filter.ColName, out var indexSchema))
 		{
+			setRows = 0;
 			Traverse(sqlCommand, Convert.ToUInt32(indexSchema.RecordData["rootpage"]));
 		}
 
@@ -45,13 +47,10 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 
 			var records = sqlCommand.Columns.Select(x => record.RecordData.First(p => p.Key == x).Value);
 			Console.WriteLine(string.Join("|", records));
-			if (rowIds.Count > 0)
+			if (setRows > 0)
 			{
-				rowIds.Remove(Convert.ToUInt32(record.RowId));
-				if (rowIds.Count == 0)
-				{
-					finished = true;
-				}
+				rowIds[Convert.ToUInt32(record.RowId)] = false;
+				setRows--;
 			}
 		}
 	}
@@ -63,7 +62,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 			reader.Seek(offset + page.Pointers[i]);
 			var leftPointer = reader.ReadFourBytesAsUInt32();
 			var rowId = reader.ReadVarint(out _);
-			if (rowIds.Count == 0 || rowIds.Any(x => x < rowId))
+			if (setRows == -1 || rowIds.Any(x => x.Key < rowId && x.Value))
 			{
 				Traverse(sqlCommand, leftPointer);
 			}
@@ -84,7 +83,8 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 			var testVal = sqlCommand.Filter!.TestValue;
 			if (sqlCommand.Filter!.CanFilterBy(val))
 			{
-				rowIds.Add(Convert.ToUInt32(record.RecordData["rowid"]));
+				rowIds.Add(Convert.ToUInt32(record.RecordData["rowid"]), true);
+				setRows++;
 			}
 		}
 	}
@@ -103,7 +103,10 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 			if (string.Compare(col, testVal) >= 0)
 			{
 				if (sqlCommand.Filter.CanFilterBy(col))
-					rowIds.Add((uint)record.RecordData["rowid"]);
+				{
+					rowIds.Add((uint)record.RecordData["rowid"], true);
+					setRows++;
+				}
 				Traverse(sqlCommand, leftPointer);
 			}
 		}
