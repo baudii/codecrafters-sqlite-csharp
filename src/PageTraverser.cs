@@ -1,7 +1,5 @@
 ﻿using codecrafters_sqlite.src.Models;
 using codecrafters_sqlite.src.Records;
-using System;
-using System.Text;
 
 namespace codecrafters_sqlite.src;
 internal class PageTraverser(DbReader reader, ushort pageSize)
@@ -9,6 +7,7 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 	string[] columns;
 	Dictionary<string, SqlSchemaRecord> indexes = [];
 	List<uint> rowIds = [];
+	bool finished = false;
 	public void Start(SqlCommand sqlCommand, Page schemaPageHeader)
 	{
 		SqlSchemaRecord[] schemas = new SqlSchemaRecord[schemaPageHeader.NumberOfCells];
@@ -46,7 +45,14 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 
 			var records = sqlCommand.Columns.Select(x => record.RecordData.First(p => p.Key == x).Value);
 			Console.WriteLine(string.Join("|", records));
-			rowIds.Remove(Convert.ToUInt32(record.RowId));
+			if (rowIds.Count > 0)
+			{
+				rowIds.Remove(Convert.ToUInt32(record.RowId));
+				if (rowIds.Count == 0)
+				{
+					finished = true;
+				}
+			}
 		}
 	}
 
@@ -107,6 +113,11 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 
 	public void Traverse(SqlCommand sqlCommand, uint rootpage)
 	{
+		if (finished)
+		{
+			return;
+		}
+
 		var offset = (rootpage - 1) * pageSize;
 		reader.Seek(offset);
 		var page = new Page(reader);
