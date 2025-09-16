@@ -28,10 +28,10 @@ internal class PageTraverser(DbReader reader, ushort pageSize)
 		columns = schema.ExtractColumnNamesFromSql();
 		if (sqlCommand.Filter != null && indexes.TryGetValue(sqlCommand.Filter.ColName, out var indexSchema))
 		{
-			Traverse(sqlCommand, (byte)indexSchema.RecordData["rootpage"]);
+			Traverse(sqlCommand, Convert.ToUInt32(indexSchema.RecordData["rootpage"]));
 		}
 
-		Traverse(sqlCommand, (byte)schema.RecordData["rootpage"]);
+		Traverse(sqlCommand, Convert.ToUInt32(schema.RecordData["rootpage"]));
 	}
 
 	public void ReadLeafTable(SqlCommand sqlCommand, Page page, uint offset)
