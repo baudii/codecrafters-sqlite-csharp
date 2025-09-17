@@ -25,7 +25,7 @@ internal static class Traverser
 		}
 
 		var schema = schemas.First(x => x.RecordData["tbl_name"]?.ToString() == sqlCommand.TableName);
-		PlanQuery(reader, sqlCommand, schema, pageSize, true);
+		PlanQuery(reader, sqlCommand, schema, pageSize);
 	}
 
 	private static void PlanQuery(DbReader reader, SqlCommand sqlCommand, SqlSchemaRecord schema, ushort pageSize, bool showTime = false)
