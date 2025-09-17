@@ -2,6 +2,7 @@
 using codecrafters_sqlite.src;
 using codecrafters_sqlite.src.Models;
 using codecrafters_sqlite.src.Records;
+using codecrafters_sqlite.src.SqlParser;
 
 var (path, command) = args.Length switch
 {
@@ -31,6 +32,6 @@ else if (command == ".tables")
 else
 {
 	var sqlCommand = new SqlCommand(command);
-	var traverser = new PageTraverser(reader, dbHeader.PageSize);
-    traverser.Start(sqlCommand, schemaPageHeader);
+    sqlCommand.ParseSql();
+    Traverser.Start(reader, sqlCommand, schemaPageHeader, dbHeader.PageSize);
 }
