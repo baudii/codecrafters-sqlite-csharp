@@ -1,8 +1,5 @@
 ﻿using codecrafters_sqlite.src.Models;
-using codecrafters_sqlite.src.Records;
 using codecrafters_sqlite.src.SqlParser;
-using System;
-using System.Diagnostics;
 
 namespace codecrafters_sqlite.src.Traversers;
 internal abstract class TraverserBase(DbReader reader, ushort pageSize)
@@ -10,7 +7,7 @@ internal abstract class TraverserBase(DbReader reader, ushort pageSize)
 	public DbReader Reader => reader;
 	public ushort PageSize => pageSize;
 	
-	protected bool Finished = false;
+	protected static bool Finished = false;
 	protected static int IndexedRows { get; set; } = -1;
 	protected static Dictionary<uint, bool> RowIds { get; set; } = [];
 
