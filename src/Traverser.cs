@@ -34,6 +34,14 @@ internal static class Traverser
 		var columns = schemaSqlCommand.ExtractColumns();
 		var tableTraverser = new TableTraverser(reader, pageSize, columns);
 
+		if (sqlCommand.Columns.Contains("count(*)", StringComparer.OrdinalIgnoreCase))
+		{
+			var offset = tableTraverser.GetOffset(Convert.ToUInt32(schema.RecordData["rootpage"]));
+			var page = tableTraverser.GetPage(offset);
+			Console.WriteLine(page.NumberOfCells);
+			return;
+		}
+
 		Stopwatch sw = Stopwatch.StartNew();
 		if (sqlCommand.Filter != null && indexes.TryGetValue(sqlCommand.Filter.ColName, out var indexSchema))
 		{

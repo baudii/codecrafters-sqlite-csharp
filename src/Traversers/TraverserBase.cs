@@ -11,8 +11,8 @@ internal abstract class TraverserBase(DbReader reader, ushort pageSize)
 	protected static int IndexedRows { get; set; } = -1;
 	protected static Dictionary<uint, bool> RowIds { get; set; } = [];
 
-	protected uint GetOffset(uint rootpage) => (rootpage - 1) * pageSize;
-	protected Page GetPage(uint offset)
+	public uint GetOffset(uint rootpage) => (rootpage - 1) * pageSize;
+	public Page GetPage(uint offset)
 	{
 		reader.Seek(offset);
 		return new Page(reader);

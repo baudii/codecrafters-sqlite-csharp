@@ -1,6 +1,4 @@
-﻿using System.Reflection.PortableExecutable;
-
-namespace codecrafters_sqlite.src.Models;
+﻿namespace codecrafters_sqlite.src.Models;
 internal class Page
 {
 	public Page(DbReader reader)
